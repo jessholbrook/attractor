@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "attractor"
+version = "0.1.0"
+description = "DOT-based pipeline runner for multi-stage AI workflows"
+requires-python = ">=3.11"
+dependencies = [
+    "lark>=1.1",
+    "click>=8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "pytest-timeout",
+    "mypy",
+    "ruff",
+]
+
+[project.scripts]
+attractor = "attractor.cli.main:cli"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100

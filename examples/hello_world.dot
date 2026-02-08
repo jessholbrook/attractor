@@ -1,0 +1,9 @@
+digraph hello_world {
+    graph [goal="Say hello to the world"]
+
+    Start [shape=Mdiamond]
+    greet [label="Generate greeting", prompt="Write a friendly hello world greeting"]
+    End [shape=Msquare]
+
+    Start -> greet -> End
+}

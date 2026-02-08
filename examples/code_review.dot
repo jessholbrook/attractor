@@ -1,0 +1,14 @@
+digraph code_review {
+    graph [goal="Review code changes for quality"]
+
+    Start [shape=Mdiamond]
+    analyze [label="Analyze code", prompt="Analyze the code changes for $goal"]
+    review_gate [label="Human Review", shape=hexagon]
+    fix [label="Fix issues", prompt="Fix the issues found during review"]
+    End [shape=Msquare]
+
+    Start -> analyze -> review_gate
+    review_gate -> End [label="Approve", condition="outcome=success"]
+    review_gate -> fix [label="Request Changes", condition="outcome=fail"]
+    fix -> review_gate
+}

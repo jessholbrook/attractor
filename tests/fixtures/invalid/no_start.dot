@@ -1,0 +1,5 @@
+digraph Bad {
+    exit [shape=Msquare]
+    work [prompt="Do something"]
+    work -> exit
+}

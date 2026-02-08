@@ -1,0 +1,11 @@
+digraph GoalGate {
+    graph [goal="Build and verify", retry_target="plan"]
+
+    start     [shape=Mdiamond]
+    exit      [shape=Msquare]
+    plan      [label="Plan", prompt="Plan"]
+    implement [label="Implement", prompt="Implement", goal_gate=true]
+    review    [label="Review", prompt="Review"]
+
+    start -> plan -> implement -> review -> exit
+}

@@ -1,0 +1,57 @@
+// Lark EBNF grammar for a strict subset of Graphviz DOT (digraph only).
+
+start: digraph
+
+digraph: "digraph" ID "{" statement* "}"
+
+?statement: graph_attr_stmt
+          | node_defaults
+          | edge_defaults
+          | subgraph
+          | edge_stmt
+          | node_stmt
+          | graph_attr_assign
+          | ";"
+
+graph_attr_stmt: "graph" attr_list ";"?
+
+node_defaults: "node" attr_list ";"?
+
+edge_defaults: "edge" attr_list ";"?
+
+graph_attr_assign: key "=" value ";"?
+
+subgraph: "subgraph" ID? "{" statement* "}" ";"?
+
+edge_stmt: node_id ("->" node_id)+ attr_list? ";"?
+
+node_stmt: node_id attr_list? ";"?
+
+node_id: ID
+
+attr_list: "[" (attr ("," attr)* ","?)? "]"
+
+attr: key "=" value
+
+key: ID ("." ID)*
+
+?value: ESCAPED_STRING  -> string_value
+      | DURATION        -> duration_value
+      | BOOLEAN         -> boolean_value
+      | FLOAT           -> float_value
+      | INT             -> int_value
+      | ID              -> bare_id_value
+
+BOOLEAN: "true" | "false"
+DURATION: /\d+(ms|s|m|h|d)/
+INT: /\d+/
+FLOAT: /\d+\.\d*/
+
+ID: /[A-Za-z_][A-Za-z_0-9]*/
+
+%import common.ESCAPED_STRING
+%import common.WS
+
+%ignore WS
+%ignore /\/\/[^\n]*/
+%ignore /\/\*[\s\S]*?\*\//

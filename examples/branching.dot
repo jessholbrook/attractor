@@ -1,0 +1,17 @@
+digraph branching {
+    graph [goal="Process data with conditional branching"]
+
+    Start [shape=Mdiamond]
+    check [label="Check data quality", shape=diamond, prompt="Check if data quality is acceptable"]
+    process_good [label="Process good data", prompt="Process the high quality data"]
+    process_bad [label="Clean bad data", prompt="Clean and reprocess the low quality data"]
+    merge [label="Merge results", prompt="Merge all processed data"]
+    End [shape=Msquare]
+
+    Start -> check
+    check -> process_good [label="Good", condition="outcome=success"]
+    check -> process_bad [label="Bad", condition="outcome=fail"]
+    process_good -> merge
+    process_bad -> merge
+    merge -> End
+}
