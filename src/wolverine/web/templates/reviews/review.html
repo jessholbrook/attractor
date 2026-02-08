@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Review Solution - Wolverine{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/solutions/{{ solution.id }}" class="text-blue-600 hover:underline text-sm">&larr; Back to solution</a>
+</div>
+
+<h1 class="text-2xl font-bold mb-6">Review Solution</h1>
+
+<!-- Issue context panel -->
+{% if issue %}
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-2">Issue Context</h2>
+    <div class="flex items-center gap-2 mb-2">
+        <h3 class="font-medium">{{ issue.title }}</h3>
+        <span class="px-2 py-1 text-xs rounded
+            {% if issue.severity == 'critical' %}bg-red-100 text-red-800
+            {% elif issue.severity == 'high' %}bg-orange-100 text-orange-800
+            {% elif issue.severity == 'medium' %}bg-yellow-100 text-yellow-800
+            {% else %}bg-gray-100 text-gray-800{% endif %}">
+            {{ issue.severity }}
+        </span>
+    </div>
+    <p class="text-gray-700 text-sm mb-2">{{ issue.description }}</p>
+    {% if issue.root_cause %}
+    <div class="text-sm mt-2">
+        <span class="text-gray-500">Root cause:</span>
+        <span>{{ issue.root_cause }}</span>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Solution summary and reasoning -->
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-2">Solution Summary</h2>
+    <p class="text-gray-700 mb-3">{{ solution.summary }}</p>
+    {% if solution.reasoning %}
+    <div class="mb-2">
+        <h3 class="text-sm font-medium text-gray-500 mb-1">Reasoning</h3>
+        <p class="text-gray-700 text-sm">{{ solution.reasoning }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Diff view -->
+{% if solution.diffs %}
+<h2 class="text-lg font-semibold mb-3">Changes ({{ solution.diffs | length }} files)</h2>
+{% for diff in solution.diffs %}
+<div class="mb-4 border rounded bg-white shadow">
+    <div class="diff-header px-4 py-2 font-mono text-sm font-bold">{{ diff.file_path }}</div>
+    <pre class="text-sm overflow-x-auto p-4">{% for line in diff.diff_text.split('\n') %}{% if line.startswith('+') and not line.startswith('+++') %}<span class="diff-add">{{ line }}</span>
+{% elif line.startswith('-') and not line.startswith('---') %}<span class="diff-remove">{{ line }}</span>
+{% else %}{{ line }}
+{% endif %}{% endfor %}</pre>
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- Test results -->
+{% if solution.test_results %}
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-2">Test Results</h2>
+    <pre class="text-sm bg-gray-50 rounded p-4 overflow-x-auto">{{ solution.test_results }}</pre>
+</div>
+{% endif %}
+
+<!-- Prior reviews (if revision) -->
+{% if prior_reviews %}
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-2">Prior Reviews</h2>
+    <div class="space-y-3">
+        {% for review in prior_reviews %}
+        <div class="border-l-4 pl-3
+            {% if review.decision == 'approved' %}border-green-500
+            {% elif review.decision == 'rejected' %}border-red-500
+            {% else %}border-yellow-500{% endif %}">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="font-medium text-sm">{{ review.reviewer }}</span>
+                {% with status=review.decision %}
+                {% include "components/status_badge.html" %}
+                {% endwith %}
+                <span class="text-xs text-gray-500">{{ review.created_at }}</span>
+            </div>
+            {% if review.feedback %}
+            <p class="text-gray-700 text-sm">{{ review.feedback }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Review form -->
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4">Submit Review</h2>
+    <form method="POST" action="{{ url_for('reviews.submit_review', solution_id=solution.id) }}">
+        <input type="hidden" name="reviewer" value="reviewer">
+        <input type="hidden" name="decision" id="decision-input" value="">
+
+        <div id="feedback-section" class="hidden mb-4">
+            <label for="feedback" class="block text-sm font-medium mb-1">Feedback</label>
+            <textarea name="feedback" id="feedback" rows="4"
+                      class="w-full border rounded p-2 text-sm"
+                      placeholder="Describe what changes are needed or why this is rejected..."></textarea>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit"
+                    onclick="document.getElementById('decision-input').value='approved'"
+                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Approve
+            </button>
+            <button type="button"
+                    onclick="showFeedback('request_changes')"
+                    class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                Request Changes
+            </button>
+            <button type="button"
+                    onclick="showFeedback('rejected')"
+                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                Reject
+            </button>
+        </div>
+
+        <button type="submit" id="submit-with-feedback"
+                class="hidden mt-3 bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">
+            Submit Review
+        </button>
+    </form>
+</div>
+
+<script>
+function showFeedback(decision) {
+    document.getElementById('decision-input').value = decision;
+    document.getElementById('feedback-section').classList.remove('hidden');
+    document.getElementById('submit-with-feedback').classList.remove('hidden');
+    document.getElementById('feedback').focus();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Signals - Wolverine{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Signals</h1>
+
+{% if signals %}
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kind</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Received</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for signal in signals %}
+            <tr>
+                <td class="px-6 py-4 text-sm">{{ signal.title }}</td>
+                <td class="px-6 py-4 text-sm">{{ signal.kind }}</td>
+                <td class="px-6 py-4 text-sm">{{ signal.source }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ signal.received_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-gray-500">No signals yet.</p>
+{% endif %}
+{% endblock %}

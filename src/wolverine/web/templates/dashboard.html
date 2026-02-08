@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Wolverine{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+
+<div id="stats-section" hx-get="/api/dashboard/stats" hx-trigger="every 5s" hx-swap="none">
+    <!-- Stats cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-sm text-gray-500">Total Issues</div>
+            <div class="text-3xl font-bold">{{ issue_counts.values() | sum }}</div>
+        </div>
+        {% for status, count in issue_counts.items() %}
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-sm text-gray-500">{{ status | title }}</div>
+            <div class="text-2xl font-semibold">{{ count }}</div>
+        </div>
+        {% endfor %}
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-sm text-gray-500">Active Runs</div>
+            <div class="text-3xl font-bold">{{ run_counts.values() | sum }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent runs table -->
+<h2 class="text-xl font-semibold mb-4">Recent Runs</h2>
+{% if recent_runs %}
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Signal</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Started</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for run in recent_runs %}
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">{{ run.id }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">{{ run.signal_id }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% with status=run.status %}
+                    {% include "components/status_badge.html" %}
+                    {% endwith %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ run.started_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-gray-500">No runs yet.</p>
+{% endif %}
+{% endblock %}

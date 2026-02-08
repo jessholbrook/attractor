@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Pending Reviews - Wolverine{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Pending Reviews</h1>
+
+{% if review_items %}
+<div class="space-y-4">
+    {% for item in review_items %}
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-start justify-between mb-2">
+            <div>
+                <a href="/issues/{{ item.issue.id }}" class="text-blue-600 hover:underline font-medium">
+                    {{ item.issue.title }}
+                </a>
+                <span class="px-2 py-1 text-xs rounded ml-2
+                    {% if item.issue.severity == 'critical' %}bg-red-100 text-red-800
+                    {% elif item.issue.severity == 'high' %}bg-orange-100 text-orange-800
+                    {% elif item.issue.severity == 'medium' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ item.issue.severity }}
+                </span>
+            </div>
+            {% with status=item.solution.status %}
+            {% include "components/status_badge.html" %}
+            {% endwith %}
+        </div>
+        {% if item.solution.summary %}
+        <p class="text-gray-700 text-sm mb-3">{{ item.solution.summary }}</p>
+        {% endif %}
+        <div class="flex gap-2">
+            <a href="/reviews/{{ item.solution.id }}"
+               class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                Review
+            </a>
+            <a href="/solutions/{{ item.solution.id }}"
+               class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300">
+                View Details
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500">No solutions awaiting review.</p>
+{% endif %}
+{% endblock %}

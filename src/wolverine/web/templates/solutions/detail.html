@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Solution: {{ solution.summary }} - Wolverine{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    {% if issue %}
+    <a href="/issues/{{ issue.id }}" class="text-blue-600 hover:underline text-sm">&larr; Back to issue</a>
+    {% endif %}
+</div>
+
+<!-- Solution header -->
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex items-start justify-between mb-4">
+        <h1 class="text-2xl font-bold">{{ solution.summary }}</h1>
+        <div class="flex gap-2">
+            {% with status=solution.status %}
+            {% include "components/status_badge.html" %}
+            {% endwith %}
+        </div>
+    </div>
+
+    {% if solution.reasoning %}
+    <div class="mb-4">
+        <h2 class="text-sm font-medium text-gray-500 mb-1">Reasoning</h2>
+        <p class="text-gray-700">{{ solution.reasoning }}</p>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+            <span class="text-gray-500">Attempt:</span>
+            <span class="font-medium">#{{ solution.attempt_number }}</span>
+        </div>
+        <div>
+            <span class="text-gray-500">Created:</span>
+            <span class="font-medium">{{ solution.created_at }}</span>
+        </div>
+        {% if solution.llm_model %}
+        <div>
+            <span class="text-gray-500">Model:</span>
+            <span class="font-medium">{{ solution.llm_model }}</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Issue context -->
+{% if issue %}
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-3">Issue Context</h2>
+    <div class="flex items-center gap-2 mb-2">
+        <h3 class="font-medium">{{ issue.title }}</h3>
+        <span class="px-2 py-1 text-xs rounded
+            {% if issue.severity == 'critical' %}bg-red-100 text-red-800
+            {% elif issue.severity == 'high' %}bg-orange-100 text-orange-800
+            {% elif issue.severity == 'medium' %}bg-yellow-100 text-yellow-800
+            {% else %}bg-gray-100 text-gray-800{% endif %}">
+            {{ issue.severity }}
+        </span>
+    </div>
+    <p class="text-gray-700 text-sm mb-2">{{ issue.description }}</p>
+    {% if issue.root_cause %}
+    <div class="text-sm mt-2">
+        <span class="text-gray-500">Root cause:</span>
+        <span>{{ issue.root_cause }}</span>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Diff view -->
+{% if solution.diffs %}
+<h2 class="text-xl font-semibold mb-3">Changes ({{ solution.diffs | length }} files)</h2>
+{% for diff in solution.diffs %}
+<div class="mb-4 border rounded bg-white shadow">
+    <div class="diff-header px-4 py-2 font-mono text-sm font-bold">{{ diff.file_path }}</div>
+    <pre class="text-sm overflow-x-auto p-4">{% for line in diff.diff_text.split('\n') %}{% if line.startswith('+') and not line.startswith('+++') %}<span class="diff-add">{{ line }}</span>
+{% elif line.startswith('-') and not line.startswith('---') %}<span class="diff-remove">{{ line }}</span>
+{% else %}{{ line }}
+{% endif %}{% endfor %}</pre>
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- Test results -->
+{% if solution.test_results %}
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-3">Test Results</h2>
+    <pre class="text-sm bg-gray-50 rounded p-4 overflow-x-auto">{{ solution.test_results }}</pre>
+</div>
+{% endif %}
+
+<!-- Review link -->
+<div class="mb-6">
+    <a href="/reviews/{{ solution.id }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 inline-block">
+        Review this solution
+    </a>
+</div>
+
+<!-- Prior reviews -->
+{% if reviews %}
+<h2 class="text-xl font-semibold mb-3">Reviews</h2>
+<div class="space-y-3 mb-6">
+    {% for review in reviews %}
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="font-medium">{{ review.reviewer }}</span>
+            {% with status=review.decision %}
+            {% include "components/status_badge.html" %}
+            {% endwith %}
+            <span class="text-sm text-gray-500">{{ review.created_at }}</span>
+        </div>
+        {% if review.feedback %}
+        <p class="text-gray-700 text-sm">{{ review.feedback }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
