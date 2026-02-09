@@ -45,6 +45,7 @@ def create_app(
     from wolverine.web.routes.signals import signals_bp
     from wolverine.web.routes.solutions import solutions_bp
     from wolverine.web.routes.api import api_bp
+    from wolverine.web.routes.about import about_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(issues_bp, url_prefix="/issues")
@@ -52,5 +53,6 @@ def create_app(
     app.register_blueprint(reviews_bp, url_prefix="/reviews")
     app.register_blueprint(signals_bp, url_prefix="/signals")
     app.register_blueprint(api_bp, url_prefix="/api")
+    app.register_blueprint(about_bp)
 
     return app

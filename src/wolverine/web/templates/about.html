@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}About — Wolverine{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-10">
+
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">About Wolverine</h1>
+        <p class="text-lg text-gray-600">Self-healing software that closes the loop from issue detection to reviewed fix.</p>
+    </div>
+
+    <!-- What It Does -->
+    <section class="bg-white rounded-lg shadow p-6 space-y-4">
+        <h2 class="text-xl font-semibold text-gray-900">What It Does</h2>
+        <p class="text-gray-700">
+            Wolverine continuously monitors your software for problems — user feedback, error logs,
+            UX research findings, social media complaints — and autonomously generates concrete code
+            fixes. Every proposed solution goes through human review before anything ships.
+        </p>
+        <p class="text-gray-700">
+            The critical guarantee: <strong>no issue falls through the cracks, and no solution ships
+            without human approval.</strong> Wolverine closes the loop between detecting a problem and
+            delivering a reviewed, tested fix.
+        </p>
+    </section>
+
+    <!-- How It Works -->
+    <section class="bg-white rounded-lg shadow p-6 space-y-4">
+        <h2 class="text-xl font-semibold text-gray-900">How It Works</h2>
+
+        <div class="space-y-3">
+            <div class="flex gap-4">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">1</div>
+                <div>
+                    <h3 class="font-medium text-gray-900">Sense</h3>
+                    <p class="text-gray-600 text-sm">Signals arrive from multiple sources — error logs, user feedback forms, UX research notes, social media, or manual submission. Each is stored as a raw signal.</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">2</div>
+                <div>
+                    <h3 class="font-medium text-gray-900">Classify &amp; Triage</h3>
+                    <p class="text-gray-600 text-sm">An LLM classifies each signal by severity, category, and affected area. Duplicates are detected and merged automatically.</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">3</div>
+                <div>
+                    <h3 class="font-medium text-gray-900">Diagnose</h3>
+                    <p class="text-gray-600 text-sm">The system analyzes the root cause, identifying which files and components are likely involved.</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">4</div>
+                <div>
+                    <h3 class="font-medium text-gray-900">Heal</h3>
+                    <p class="text-gray-600 text-sm">An autonomous coding agent reads the codebase, understands the issue, writes a fix, and runs tests. The result is a concrete solution with file diffs.</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">5</div>
+                <div>
+                    <h3 class="font-medium text-gray-900">Human Review</h3>
+                    <p class="text-gray-600 text-sm">Every solution is queued for human review. Reviewers see the issue context, the agent's reasoning, a full diff view, and test results. They can approve, reject, or request changes.</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">6</div>
+                <div>
+                    <h3 class="font-medium text-gray-900">Iterate or Ship</h3>
+                    <p class="text-gray-600 text-sm">If changes are requested, the agent revises the solution with the reviewer's feedback and resubmits. Approved solutions are recorded and ready for deployment.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture -->
+    <section class="bg-white rounded-lg shadow p-6 space-y-4">
+        <h2 class="text-xl font-semibold text-gray-900">Architecture</h2>
+        <p class="text-gray-700">
+            Wolverine is the fourth package in the <strong>Attractor</strong> monorepo, composing
+            three lower-level libraries:
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="border rounded-lg p-4">
+                <h3 class="font-medium text-gray-900">unified_llm</h3>
+                <p class="text-gray-600 text-sm">Provider-agnostic LLM client supporting OpenAI, Anthropic, and Gemini. Handles all AI calls — classification, diagnosis, and code generation.</p>
+            </div>
+            <div class="border rounded-lg p-4">
+                <h3 class="font-medium text-gray-900">agent_loop</h3>
+                <p class="text-gray-600 text-sm">Autonomous agent loop (think, tool call, observe, repeat). Powers the healing agent that reads code, writes fixes, and runs tests.</p>
+            </div>
+            <div class="border rounded-lg p-4">
+                <h3 class="font-medium text-gray-900">attractor</h3>
+                <p class="text-gray-600 text-sm">DOT-based pipeline runner for multi-stage workflows. Defines the healing pipeline as a graph with conditional branches, gates, and checkpoints.</p>
+            </div>
+        </div>
+        <p class="text-gray-700">
+            The pipeline engine runs in a background thread while Flask serves the review UI.
+            They communicate through SQLite (WAL mode for concurrent access) and a thread-safe
+            queue for the review gate.
+        </p>
+    </section>
+
+    <!-- Project Stats -->
+    <section class="bg-white rounded-lg shadow p-6 space-y-4">
+        <h2 class="text-xl font-semibold text-gray-900">Project Stats</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-gray-900">4</div>
+                <div class="text-sm text-gray-500">Packages</div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-gray-900">13,092</div>
+                <div class="text-sm text-gray-500">Source LOC</div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-gray-900">20,814</div>
+                <div class="text-sm text-gray-500">Test LOC</div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-gray-900">1,750</div>
+                <div class="text-sm text-gray-500">Tests</div>
+            </div>
+        </div>
+
+        <h3 class="font-medium text-gray-900 mt-4">By Package</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-2 pr-4 text-gray-500 font-medium">Package</th>
+                        <th class="text-right py-2 px-4 text-gray-500 font-medium">Source LOC</th>
+                        <th class="text-right py-2 px-4 text-gray-500 font-medium">Test LOC</th>
+                        <th class="text-right py-2 px-4 text-gray-500 font-medium">Tests</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b">
+                        <td class="py-2 pr-4 font-medium">attractor</td>
+                        <td class="text-right px-4">3,637</td>
+                        <td class="text-right px-4">4,336</td>
+                        <td class="text-right px-4">338</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="py-2 pr-4 font-medium">agent_loop</td>
+                        <td class="text-right px-4">2,641</td>
+                        <td class="text-right px-4">3,026</td>
+                        <td class="text-right px-4">358</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="py-2 pr-4 font-medium">unified_llm</td>
+                        <td class="text-right px-4">4,248</td>
+                        <td class="text-right px-4">8,269</td>
+                        <td class="text-right px-4">634</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="py-2 pr-4 font-medium">wolverine</td>
+                        <td class="text-right px-4">2,566</td>
+                        <td class="text-right px-4">5,183</td>
+                        <td class="text-right px-4">420</td>
+                    </tr>
+                    <tr class="font-semibold">
+                        <td class="py-2 pr-4">Total</td>
+                        <td class="text-right px-4">13,092</td>
+                        <td class="text-right px-4">20,814</td>
+                        <td class="text-right px-4">1,750</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+            <div class="p-3 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">Source Files</div>
+                <div class="font-semibold">145 Python + 10 HTML</div>
+            </div>
+            <div class="p-3 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">Test Files</div>
+                <div class="font-semibold">111 Python</div>
+            </div>
+            <div class="p-3 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">Total Lines</div>
+                <div class="font-semibold">34,564</div>
+            </div>
+        </div>
+
+        <p class="text-xs text-gray-400 mt-4">
+            Built entirely within Claude Code sessions. All four packages — unified_llm, agent_loop, attractor, and wolverine — were designed and implemented test-first with comprehensive coverage.
+        </p>
+    </section>
+
+</div>
+{% endblock %}
