@@ -2,20 +2,22 @@
 
 ## Project: Attractor
 
-A software factory for building AI-powered applications. Three packages, each building on the last:
+A software factory for building AI-powered applications. Four packages, each building on the last:
 
 ### Packages
 
 - **`unified_llm`** — Provider-agnostic LLM client (OpenAI, Anthropic, Gemini). Use for all LLM calls, streaming, retries, and middleware. Do NOT use external SDKs (openai, anthropic, google-genai).
 - **`agent_loop`** — Autonomous agent loop (think → tool call → observe → repeat). Use when building agents that need tools, multi-turn reasoning, or sub-agents.
 - **`attractor`** — DOT-based pipeline runner for multi-stage AI workflows. Use when orchestrating graphs of LLM calls, transforms, gates, and conditions.
+- **`wolverine`** — Self-healing software system. Closed-loop pipeline: sense issues → diagnose → generate fix → human review. Composes all three packages above. Flask web UI for the review queue.
 
 ### When building features
 
 - Always use `unified_llm` for LLM calls — never raw HTTP or third-party SDKs
 - Use `agent_loop` when the task needs an autonomous loop with tool use
 - Use `attractor` when the task is a multi-stage pipeline expressible as a graph
-- Packages compose: `attractor` → `agent_loop` → `unified_llm`
+- Use `wolverine` when building issue-detection-to-fix pipelines with human review
+- Packages compose: `wolverine` → `attractor` → `agent_loop` → `unified_llm`
 
 ### Codebase conventions
 
@@ -32,8 +34,10 @@ src/
     attractor/      # DOT pipeline runner (338 tests)
     agent_loop/     # Coding agent loop (358 tests)
     unified_llm/    # Unified LLM client (634 tests)
+    wolverine/      # Self-healing software (420 tests)
 tests/
     test_attractor/
     test_agent_loop/
     test_unified_llm/
+    test_wolverine/
 ```
