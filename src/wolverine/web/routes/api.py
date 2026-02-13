@@ -10,6 +10,21 @@ from wolverine.model.signal import RawSignal, SignalKind, SignalSource
 api_bp = Blueprint("api", __name__)
 
 
+@api_bp.after_request
+def add_cors_headers(response):
+    """Allow cross-origin requests to the API."""
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
+
+@api_bp.route("/signals", methods=["OPTIONS"])
+def signals_preflight():
+    """Handle CORS preflight for signal creation."""
+    return "", 204
+
+
 def _generate_id() -> str:
     """Generate a short unique ID."""
     return uuid.uuid4().hex[:12]

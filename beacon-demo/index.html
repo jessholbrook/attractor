@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beacon — Team Status Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+        @keyframes slideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        @keyframes fadeOut { from{opacity:1} to{opacity:0} }
+        .shake { animation: shake 0.3s ease-in-out; }
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        .fade-out { animation: fadeOut 0.3s ease-out; }
+        .bar-chart .bar { transition: height 0.5s ease-out; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Nav -->
+    <nav class="bg-indigo-900 text-white px-6 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="#" class="text-lg font-bold flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    Beacon
+                </a>
+                <a href="#dashboard" class="text-indigo-200 hover:text-white text-sm">Dashboard</a>
+                <a href="#team" class="text-indigo-200 hover:text-white text-sm">Team</a>
+                <a href="#sprint" class="text-indigo-200 hover:text-white text-sm">Reports</a>
+            </div>
+            <button onclick="toggleFeedbackWidget()" class="bg-indigo-700 hover:bg-indigo-600 px-4 py-1.5 rounded text-sm font-medium transition">Give Feedback</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-8 space-y-10">
+
+        <!-- Hero -->
+        <div id="dashboard">
+            <h1 class="text-2xl font-bold text-gray-900">Good morning! Here's your team's pulse.</h1>
+            <p class="text-gray-500 mt-1">Monday, Feb 10 2026 &middot; Sprint 14, Day 3</p>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-3xl font-bold text-indigo-600">12</div>
+                <div class="text-sm text-gray-500 mt-1">Tasks completed this week</div>
+                <div class="text-xs text-green-600 mt-2">+3 from yesterday</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-3xl font-bold text-orange-500">3</div>
+                <div class="text-sm text-gray-500 mt-1">Active blockers</div>
+                <div class="text-xs text-red-500 mt-2">+1 new today</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="text-3xl font-bold text-green-600">87%</div>
+                <div class="text-sm text-gray-500 mt-1">Sprint on track</div>
+                <div class="text-xs text-gray-400 mt-2">Target: 90%</div>
+            </div>
+        </div>
+
+        <!-- Team Grid -->
+        <div id="team">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Team Status</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="team-grid">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-lg shadow p-5 flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">SK</div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900">Sarah Kim</div>
+                        <div class="text-xs text-gray-500">Frontend Engineer</div>
+                        <div class="text-xs text-green-600 mt-1">Working on auth refactor</div>
+                        <button onclick="viewTeamDetail('Sarah Kim', 0)" class="text-xs text-indigo-600 hover:underline mt-2">View details</button>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white rounded-lg shadow p-5 flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-sm">JR</div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900">Jake Rodriguez</div>
+                        <div class="text-xs text-gray-500">Backend Engineer</div>
+                        <div class="text-xs text-orange-500 mt-1">Blocked on API migration</div>
+                        <button onclick="viewTeamDetail('Jake Rodriguez', 1)" class="text-xs text-indigo-600 hover:underline mt-2">View details</button>
+                    </div>
+                </div>
+                <!-- Card 3 - BROKEN -->
+                <div class="bg-white rounded-lg shadow p-5 flex items-start gap-4" id="broken-card">
+                    <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm">AL</div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900">Alex Lee</div>
+                        <div class="text-xs text-gray-500">Full-stack Engineer</div>
+                        <div class="text-xs text-green-600 mt-1">Reviewing PRs</div>
+                        <button onclick="viewTeamDetail('Alex Lee', 2)" class="text-xs text-indigo-600 hover:underline mt-2">View details</button>
+                    </div>
+                </div>
+                <!-- Card 4 -->
+                <div class="bg-white rounded-lg shadow p-5 flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-sm">MP</div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900">Maya Patel</div>
+                        <div class="text-xs text-gray-500">Designer</div>
+                        <div class="text-xs text-green-600 mt-1">Sprint planning designs</div>
+                        <button onclick="viewTeamDetail('Maya Patel', 3)" class="text-xs text-indigo-600 hover:underline mt-2">View details</button>
+                    </div>
+                </div>
+                <!-- Card 5 -->
+                <div class="bg-white rounded-lg shadow p-5 flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold text-sm">TC</div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900">Tom Chen</div>
+                        <div class="text-xs text-gray-500">DevOps</div>
+                        <div class="text-xs text-green-600 mt-1">CI pipeline optimization</div>
+                        <button onclick="viewTeamDetail('Tom Chen', 4)" class="text-xs text-indigo-600 hover:underline mt-2">View details</button>
+                    </div>
+                </div>
+                <!-- Card 6 -->
+                <div class="bg-white rounded-lg shadow p-5 flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold text-sm">RN</div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900">Rina Nakamura</div>
+                        <div class="text-xs text-gray-500">QA Lead</div>
+                        <div class="text-xs text-orange-500 mt-1">Writing regression tests</div>
+                        <button onclick="viewTeamDetail('Rina Nakamura', 5)" class="text-xs text-indigo-600 hover:underline mt-2">View details</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sprint Progress Chart -->
+        <div id="sprint" class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Sprint Progress</h2>
+                <button onclick="exportCSV()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm transition">Export CSV</button>
+            </div>
+            <div class="bar-chart flex items-end gap-3 h-48">
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="bar w-full bg-indigo-500 rounded-t" style="height: 60%"></div>
+                    <span class="text-xs text-gray-500">Mon</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="bar w-full bg-indigo-500 rounded-t" style="height: 80%"></div>
+                    <span class="text-xs text-gray-500">Tue</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="bar w-full bg-indigo-500 rounded-t" style="height: 45%"></div>
+                    <span class="text-xs text-gray-500">Wed</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="bar w-full bg-indigo-400 rounded-t" style="height: 90%"></div>
+                    <span class="text-xs text-gray-500">Thu</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="bar w-full bg-indigo-300 rounded-t" style="height: 30%"></div>
+                    <span class="text-xs text-gray-500">Fri</span>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center gap-4 text-xs text-gray-500">
+                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-indigo-500 rounded inline-block"></span> Completed</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-indigo-300 rounded inline-block"></span> Projected</span>
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
+            <div class="space-y-3 text-sm">
+                <div class="flex items-center gap-3 text-gray-700">
+                    <span class="w-2 h-2 rounded-full bg-green-400 flex-shrink-0"></span>
+                    <span><strong>Sarah Kim</strong> completed "Auth token refresh logic"</span>
+                    <span class="text-gray-400 ml-auto text-xs">2m ago</span>
+                </div>
+                <div class="flex items-center gap-3 text-gray-700">
+                    <span class="w-2 h-2 rounded-full bg-orange-400 flex-shrink-0"></span>
+                    <span><strong>Jake Rodriguez</strong> flagged a blocker on API migration</span>
+                    <span class="text-gray-400 ml-auto text-xs">15m ago</span>
+                </div>
+                <div class="flex items-center gap-3 text-gray-700">
+                    <span class="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"></span>
+                    <span><strong>Maya Patel</strong> uploaded new mockups for Settings page</span>
+                    <span class="text-gray-400 ml-auto text-xs">32m ago</span>
+                </div>
+                <div class="flex items-center gap-3 text-gray-700">
+                    <span class="w-2 h-2 rounded-full bg-green-400 flex-shrink-0"></span>
+                    <span><strong>Tom Chen</strong> merged "Optimize Docker build layers"</span>
+                    <span class="text-gray-400 ml-auto text-xs">1h ago</span>
+                </div>
+                <div class="flex items-center gap-3 text-gray-700">
+                    <span class="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0"></span>
+                    <span><strong>Alex Lee</strong> approved PR #247 "Fix pagination offset"</span>
+                    <span class="text-gray-400 ml-auto text-xs">1h ago</span>
+                </div>
+                <div class="flex items-center gap-3 text-gray-700">
+                    <span class="w-2 h-2 rounded-full bg-green-400 flex-shrink-0"></span>
+                    <span><strong>Rina Nakamura</strong> completed 8 regression test cases</span>
+                    <span class="text-gray-400 ml-auto text-xs">2h ago</span>
+                </div>
+                <div class="flex items-center gap-3 text-gray-700">
+                    <span class="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"></span>
+                    <span><strong>Sarah Kim</strong> started "Session timeout handling"</span>
+                    <span class="text-gray-400 ml-auto text-xs">3h ago</span>
+                </div>
+                <div class="flex items-center gap-3 text-gray-700">
+                    <span class="w-2 h-2 rounded-full bg-orange-400 flex-shrink-0"></span>
+                    <span><strong>Jake Rodriguez</strong> reopened issue #189 "Rate limiter edge case"</span>
+                    <span class="text-gray-400 ml-auto text-xs">4h ago</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- NPS Survey -->
+        <div class="bg-white rounded-lg shadow p-6" id="nps-section">
+            <h2 class="text-lg font-semibold text-gray-900 mb-2">How likely are you to recommend Beacon to a colleague?</h2>
+            <p class="text-sm text-gray-500 mb-4">Your feedback helps us improve.</p>
+            <div id="nps-buttons" class="flex gap-2 flex-wrap">
+                <button onclick="submitNPS(1)" class="w-10 h-10 rounded border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium transition">1</button>
+                <button onclick="submitNPS(2)" class="w-10 h-10 rounded border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium transition">2</button>
+                <button onclick="submitNPS(3)" class="w-10 h-10 rounded border border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition">3</button>
+                <button onclick="submitNPS(4)" class="w-10 h-10 rounded border border-orange-200 text-orange-500 hover:bg-orange-50 text-sm font-medium transition">4</button>
+                <button onclick="submitNPS(5)" class="w-10 h-10 rounded border border-orange-200 text-orange-500 hover:bg-orange-50 text-sm font-medium transition">5</button>
+                <button onclick="submitNPS(6)" class="w-10 h-10 rounded border border-yellow-200 text-yellow-600 hover:bg-yellow-50 text-sm font-medium transition">6</button>
+                <button onclick="submitNPS(7)" class="w-10 h-10 rounded border border-yellow-200 text-yellow-600 hover:bg-yellow-50 text-sm font-medium transition">7</button>
+                <button onclick="submitNPS(8)" class="w-10 h-10 rounded border border-green-200 text-green-600 hover:bg-green-50 text-sm font-medium transition">8</button>
+                <button onclick="submitNPS(9)" class="w-10 h-10 rounded border border-green-200 text-green-600 hover:bg-green-50 text-sm font-medium transition">9</button>
+                <button onclick="submitNPS(10)" class="w-10 h-10 rounded border border-green-200 text-green-700 hover:bg-green-50 text-sm font-medium transition">10</button>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400 mt-1 px-1">
+                <span>Not likely</span>
+                <span>Very likely</span>
+            </div>
+            <div id="nps-comment" class="hidden mt-4">
+                <textarea id="nps-text" rows="2" placeholder="Any additional comments? (optional)" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                <button onclick="submitNPSComment()" class="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-sm transition">Submit</button>
+            </div>
+            <div id="nps-thanks" class="hidden text-green-600 text-sm font-medium mt-3"></div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t bg-white mt-10 py-6 px-6">
+        <div class="max-w-7xl mx-auto flex items-center justify-between text-sm text-gray-500">
+            <span>Beacon v0.3.2-beta</span>
+            <div class="flex items-center gap-4">
+                <a href="https://attractor-azure.vercel.app/" target="_blank" class="text-indigo-600 hover:underline flex items-center gap-1">
+                    Self-healing powered by Wolverine
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Feedback Widget -->
+    <div id="feedback-btn" class="fixed bottom-6 right-6 z-50">
+        <button onclick="toggleFeedbackWidget()" class="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg flex items-center justify-center transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        </button>
+    </div>
+
+    <div id="feedback-panel" class="hidden fixed bottom-24 right-6 z-50 w-80 bg-white rounded-lg shadow-2xl border">
+        <div class="p-4 border-b flex items-center justify-between">
+            <h3 class="font-semibold text-gray-900">Send Feedback</h3>
+            <button onclick="toggleFeedbackWidget()" class="text-gray-400 hover:text-gray-600">&times;</button>
+        </div>
+        <div id="feedback-form" class="p-4 space-y-3">
+            <div>
+                <label class="text-xs text-gray-500 block mb-1">Type</label>
+                <select id="feedback-type" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <option value="bug_report">Bug Report</option>
+                    <option value="feature_request">Feature Request</option>
+                    <option value="general">General Feedback</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs text-gray-500 block mb-1">Description</label>
+                <textarea id="feedback-text" rows="4" placeholder="Tell us what's on your mind..." class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+            </div>
+            <button onclick="submitFeedback()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded text-sm font-medium transition">Submit</button>
+        </div>
+        <div id="feedback-success" class="hidden p-6 text-center">
+            <div class="text-green-500 text-3xl mb-2">&#10003;</div>
+            <div class="font-medium text-gray-900">Thanks for your feedback!</div>
+            <div class="text-xs text-gray-500 mt-1">It's been sent to our healing pipeline.</div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 left-6 z-50 space-y-2"></div>
+
+    <script>
+    const WOLVERINE_API = 'https://attractor-azure.vercel.app/api/signals';
+
+    // --- Core: send signal to Wolverine ---
+    async function sendSignal({ title, body, kind, metadata = {} }) {
+        metadata.source_app = 'beacon-demo';
+        metadata.sent_at = new Date().toISOString();
+        metadata.user_agent = navigator.userAgent;
+
+        try {
+            const res = await fetch(WOLVERINE_API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, body, kind, metadata }),
+            });
+            const data = await res.json();
+            console.log('[Beacon → Wolverine] Signal accepted:', data.id);
+            showToast('Signal sent to Wolverine', 'info');
+            return data;
+        } catch (err) {
+            console.error('[Beacon → Wolverine] Failed:', err);
+            return null;
+        }
+    }
+
+    // --- Toast notifications ---
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        const colors = {
+            info: 'bg-indigo-600',
+            success: 'bg-green-600',
+            error: 'bg-red-600',
+        };
+        toast.className = `${colors[type] || colors.info} text-white px-4 py-2 rounded-lg shadow-lg text-sm slide-up flex items-center gap-2`;
+
+        if (type === 'error') {
+            toast.innerHTML = `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg> ${message}`;
+        } else if (type === 'info') {
+            toast.innerHTML = `<a href="https://attractor-azure.vercel.app/signals" target="_blank" class="underline">${message}</a>`;
+        } else {
+            toast.textContent = message;
+        }
+
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // --- Team card detail (card #3 is broken) ---
+    function viewTeamDetail(name, index) {
+        if (index === 2) {
+            // Simulate crash
+            const card = document.getElementById('broken-card');
+            card.classList.add('shake');
+            setTimeout(() => card.classList.remove('shake'), 300);
+
+            showToast('TypeError: Cannot read properties of undefined (reading \'tasks\')', 'error');
+
+            sendSignal({
+                title: "TypeError: Cannot read properties of undefined (reading 'tasks')",
+                body: "Uncaught TypeError: Cannot read properties of undefined (reading 'tasks')\n" +
+                      "    at TeamCard.render (beacon.js:142)\n" +
+                      "    at Dashboard.mount (beacon.js:89)\n" +
+                      "    at HTMLElement.onclick (index.html:1)\n\n" +
+                      "User was viewing the team dashboard and clicked 'View details' on team member card for " + name + ".",
+                kind: 'error_log',
+                metadata: {
+                    error_type: 'TypeError',
+                    component: 'TeamCard',
+                    team_member: name,
+                },
+            });
+        } else {
+            showToast(`Viewing ${name}'s details...`, 'success');
+        }
+    }
+
+    // --- Export CSV (broken) ---
+    function exportCSV() {
+        showToast('RangeError: Maximum call stack size exceeded', 'error');
+
+        const chartEl = document.getElementById('sprint');
+        chartEl.classList.add('shake');
+        setTimeout(() => chartEl.classList.remove('shake'), 300);
+
+        sendSignal({
+            title: 'RangeError: Maximum call stack size exceeded',
+            body: "RangeError: Maximum call stack size exceeded\n" +
+                  "    at exportData (beacon.js:203)\n" +
+                  "    at exportData (beacon.js:205)\n" +
+                  "    at exportData (beacon.js:205)\n" +
+                  "    ...\n\n" +
+                  "User clicked 'Export as CSV' on the Sprint Progress chart. The recursive serializer hit a circular reference in the chart data model.",
+            kind: 'error_log',
+            metadata: {
+                error_type: 'RangeError',
+                component: 'SprintChart.export',
+            },
+        });
+    }
+
+    // --- NPS Survey ---
+    let npsScore = null;
+
+    function submitNPS(score) {
+        npsScore = score;
+        // Highlight selected button
+        const buttons = document.getElementById('nps-buttons');
+        Array.from(buttons.children).forEach((btn, i) => {
+            btn.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50');
+            if (i === score - 1) {
+                btn.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50');
+            }
+        });
+        document.getElementById('nps-comment').classList.remove('hidden');
+    }
+
+    function submitNPSComment() {
+        const comment = document.getElementById('nps-text').value;
+        document.getElementById('nps-comment').classList.add('hidden');
+        document.getElementById('nps-buttons').classList.add('hidden');
+
+        const thanks = document.getElementById('nps-thanks');
+        thanks.textContent = `Thanks! You rated Beacon ${npsScore}/10.`;
+        thanks.classList.remove('hidden');
+
+        sendSignal({
+            title: `NPS Survey: User rated ${npsScore}/10`,
+            body: `User rated Beacon ${npsScore} out of 10.\n\n` +
+                  (comment ? `Comment: "${comment}"` : 'No additional comment provided.'),
+            kind: 'ux_research',
+            metadata: {
+                nps_score: String(npsScore),
+                survey_type: 'nps',
+                has_comment: comment ? 'true' : 'false',
+            },
+        });
+    }
+
+    // --- Feedback Widget ---
+    function toggleFeedbackWidget() {
+        const panel = document.getElementById('feedback-panel');
+        const form = document.getElementById('feedback-form');
+        const success = document.getElementById('feedback-success');
+
+        if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+            panel.classList.add('slide-up');
+            form.classList.remove('hidden');
+            success.classList.add('hidden');
+        } else {
+            panel.classList.add('hidden');
+        }
+    }
+
+    function submitFeedback() {
+        const type = document.getElementById('feedback-type').value;
+        const text = document.getElementById('feedback-text').value.trim();
+
+        if (!text) {
+            document.getElementById('feedback-text').classList.add('ring-2', 'ring-red-400');
+            setTimeout(() => document.getElementById('feedback-text').classList.remove('ring-2', 'ring-red-400'), 1500);
+            return;
+        }
+
+        const typeLabels = {
+            bug_report: 'Bug Report',
+            feature_request: 'Feature Request',
+            general: 'General Feedback',
+        };
+        const label = typeLabels[type] || 'Feedback';
+        const titlePreview = text.length > 60 ? text.substring(0, 60) + '...' : text;
+
+        sendSignal({
+            title: `${label}: ${titlePreview}`,
+            body: text,
+            kind: 'user_feedback',
+            metadata: {
+                feedback_type: type,
+                page: 'dashboard',
+            },
+        });
+
+        document.getElementById('feedback-form').classList.add('hidden');
+        document.getElementById('feedback-success').classList.remove('hidden');
+        document.getElementById('feedback-text').value = '';
+
+        setTimeout(() => {
+            document.getElementById('feedback-panel').classList.add('hidden');
+        }, 2000);
+    }
+    </script>
+
+</body>
+</html>
