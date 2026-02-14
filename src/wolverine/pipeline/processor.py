@@ -19,8 +19,39 @@ def _generate_id() -> str:
     return uuid.uuid4().hex[:12]
 
 
+def _parse_classification(text: str) -> dict:
+    """Extract JSON classification from the ===CLASSIFICATION=== block."""
+    match = re.search(r"===CLASSIFICATION===\s*\n?(.*?)(?:===HTML===|```|$)", text, re.DOTALL)
+    if match:
+        raw = match.group(1).strip()
+        # Strip markdown code fence if present
+        if raw.startswith("```"):
+            raw = re.sub(r"^```(?:json)?\s*\n?", "", raw)
+            raw = re.sub(r"\n?```\s*$", "", raw)
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            pass
+    # Fallback: try to find any JSON object in the text before the HTML
+    match = re.search(r"\{[^{}]*\"severity\"[^{}]*\}", text)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            pass
+    return {}
+
+
 def _extract_html(text: str) -> str:
-    """Extract HTML from Claude's response, handling ```html markers."""
+    """Extract HTML from Claude's response, handling various markers."""
+    # Check for ===HTML=== marker first
+    match = re.search(r"===HTML===\s*\n?(.*)", text, re.DOTALL)
+    if match:
+        html = match.group(1).strip()
+        # Remove any trailing ``` if wrapped
+        html = re.sub(r"\n?```\s*$", "", html)
+        return html
+    # Then check ```html fences
     match = re.search(r"```html\s*\n(.*?)```", text, re.DOTALL)
     if match:
         return match.group(1).strip()
@@ -34,59 +65,17 @@ def process_signal(
     signal,
     beacon_html: str,
     client: UnifiedClient,
-    model: str = "claude-sonnet-4-20250514",
+    model: str = "claude-haiku-4-5-20251001",
 ) -> tuple[Issue, Solution]:
-    """Classify a signal, create an issue, and generate a fixed Beacon HTML."""
+    """Classify a signal and generate a fixed Beacon HTML in one LLM call."""
     now = datetime.now(timezone.utc).isoformat()
 
-    # Step 1: Classify (using generate + manual JSON parse for Anthropic compat)
-    classify_result = generate(
-        model,
-        prompt=f"""Classify this signal and respond with ONLY a JSON object (no markdown, no explanation):
-
-Title: {signal.title}
-Body: {signal.body}
-
-Return JSON with these exact keys:
-- "severity": one of "critical", "high", "medium", "low"
-- "category": one of "bug", "missing_content", "ux_issue", "performance", "accessibility", "other"
-- "title": concise issue title (max 100 chars)
-- "description": clear description of the issue
-- "tags": array of relevant tag strings
-- "is_duplicate": boolean""",
-        system=CLASSIFY_SYSTEM,
-        client=client,
-    )
-    # Extract JSON from response (handle possible markdown wrapping)
-    raw = classify_result.text.strip()
-    if raw.startswith("```"):
-        raw = re.sub(r"^```(?:json)?\s*\n?", "", raw)
-        raw = re.sub(r"\n?```\s*$", "", raw)
-    classification = json.loads(raw)
-
-    # Step 2: Create Issue
-    issue = Issue(
-        id=_generate_id(),
-        title=classification["title"],
-        description=classification["description"],
-        severity=IssueSeverity(classification["severity"]),
-        status=IssueStatus.HEALING,
-        category=IssueCategory(classification["category"]),
-        signal_ids=(signal.id,),
-        tags=tuple(classification.get("tags", [])),
-        created_at=now,
-        updated_at=now,
-    )
-
-    # Step 3: Generate fix
+    # Single LLM call: classify + fix in one shot to stay within Vercel timeout
     heal_result = generate(
         model,
-        prompt=f"""Signal: {signal.title}
-{signal.body}
-
-Diagnosis: {issue.description}
-Severity: {issue.severity}
-Category: {issue.category}
+        prompt=f"""Bug report:
+Title: {signal.title}
+Body: {signal.body}
 
 Here is the complete current HTML source:
 
@@ -94,10 +83,36 @@ Here is the complete current HTML source:
 {beacon_html}
 ```
 
-Generate the complete fixed HTML:""",
-        system=HEAL_BEACON_SYSTEM,
+First, output a JSON classification block, then the fixed HTML.
+
+OUTPUT FORMAT (follow exactly):
+===CLASSIFICATION===
+{{"severity": "high", "category": "bug", "title": "...", "description": "..."}}
+===HTML===
+<!DOCTYPE html>
+... complete fixed HTML ...
+</html>""",
+        system=CLASSIFY_SYSTEM + "\n\n" + HEAL_BEACON_SYSTEM,
         client=client,
         max_tokens=16384,
+    )
+
+    # Parse classification JSON and fixed HTML from single response
+    text = heal_result.text
+    classification = _parse_classification(text)
+
+    # Create Issue
+    issue = Issue(
+        id=_generate_id(),
+        title=classification.get("title", signal.title),
+        description=classification.get("description", signal.body),
+        severity=IssueSeverity(classification.get("severity", "medium")),
+        status=IssueStatus.HEALING,
+        category=IssueCategory(classification.get("category", "bug")),
+        signal_ids=(signal.id,),
+        tags=tuple(classification.get("tags", [])),
+        created_at=now,
+        updated_at=now,
     )
 
     fixed_html = _extract_html(heal_result.text)
